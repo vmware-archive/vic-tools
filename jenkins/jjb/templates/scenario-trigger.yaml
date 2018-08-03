@@ -1,0 +1,15 @@
+- job-template:
+    name: 'vic-{version}-trigger'
+    description: 'This is a parameterized build for running Nimbus scenario tests against build of vic {branch}'
+    node: 'vic-executor'
+    scm:
+      - git:
+          url: 'https://github.com/vmware/vic-tools'
+          branches:
+            - 'master'
+    triggers:
+      - timed: '@midnight'
+    builders:
+      - shell: |
+          #!/bin/bash
+          docker run  --rm -v ${{WORKSPACE}}:/src wdc-harbor-ci.eng.vmware.com/default-project/ci-trigger:0.0.1 /src/jenkins/jobs/trigger/nightly_trigger.sh vic-engine-builds {branch} vic_ vic-{version}-scenario

@@ -1,0 +1,15 @@
+- view:
+    name: 'Scenario'
+    view-type: list
+    description: 'VIC Scenario Tests runs nightly'
+    job-name:
+      - vic-1.4.3-scenario
+      - vic-master-scenario
+    columns:
+      - status
+      - weather
+      - job
+      - last-success
+      - last-failure
+      - last-duration
+      - robot-list

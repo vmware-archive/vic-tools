@@ -1,0 +1,119 @@
+- defaults:
+    name: 'scenario-tests'
+    description: 'This is a parameterized build for running Nimbus scenario tests against build of {repo} {branch}'
+    node: 'vic-executor'
+    parameters:
+      - choice:
+          name: VSPHERE_VERSION
+          choices:
+            - '6.7'
+            - '6.5'
+            - '6.0'
+          description: 'The version of vSphere to run against. Skipped tests are determined by it.'
+      - string:
+          name: ESX_BUILD
+          default: '{default_esx_build}'
+          description: 'The build of ESX to deploy, e.g. ob-8169922 (6.7 default).'
+      - string:
+          name: VC_BUILD
+          default: '{default_vc_build}'
+          description: 'The build of VC to deploy, e.g. ob-8217866 (6.7 default).'
+      - string:
+          name: BUILD_NUM
+          default: ''
+          description: 'Build number to test.'
+      - string:
+          name: TEST_CASES
+          default: ''
+          description: |
+            The specific test cases to run as part of the job. These are passed as arguments to pabot so will likely be of the form "tests/manual-test-cases/Group23-Future-Tests"
+            Runs the default set of tests if left empty.
+    scm:
+      - git:
+          url: 'git@gitlab.eng.vmware.com:core-build/vic-internal.git'
+          credentials-id: '89094db1-3393-4148-bf08-2363af653ec1'
+          branches:
+            - 'master'
+          basedir: 'vic-internal'
+      - git:
+          url: 'https://github.com/vmware/{repo}'
+          branches:
+            - '{branch}'
+          basedir: '{repo}'
+    wrappers:
+      - timeout:
+          name: absolute_timeout
+          timeout: '{build_timeout}'
+          abort: true
+          type: absolute
+      - workspace-cleanup
+      - build-name:
+          name: ${{ENV,var="BUILD_NUM"}}
+    publishers:
+      - robot:
+          output-path: '{repo}/$VSPHERE_VERSION'
+          pass-threshold: '100'
+          unstable-threshold: '100'
+      - groovy-postbuild:
+          script: |
+              def vc_build = manager.envVars['VC_BUILD']
+              def esx_build = manager.envVars['ESX_BUILD']
+              def vsphere_version = manager.envVars.get('VSPHERE_VERSION')
+              def summary = manager.createSummary("gear2.gif")
+              summary.appendText("Infrastructure Builds:<ul>", false)
+              summary.appendText("<li><b>vSphere Version</b> - ${{vsphere_version}}</li>", false)
+              summary.appendText("<li><b>vCenter</b> - ${{vc_build}}</li>", false)
+              summary.appendText("<li><b>ESXi</b> - ${{esx_build}}</li>", false)
+      - email-ext:
+          recipients: vic-eng@vmware.com
+          reply-to: vic-eng@vmware.com
+          success: true
+          aborted: true
+          failure: true
+          content-type: html
+          send-to:
+            - recipients
+          subject: 'vmware/{repo} Scenario Testing - ${{VSPHERE_VERSION}}/{repo}/{branch} - Build: $BUILD_NUM'
+          body: |
+              Download link for the test logs is in the <a href="${{BUILD_URL}}/console">build console output</a>
+              <p>
+              ${{VSPHERE_VERSION}} Jenkins Nimbus Scenario Job: <a href="${{BUILD_URL}}">${{BUILD_URL}}</a>
+              <p>
+              Run Report: ${{ROBOT_REPORTLINK}}
+              <p>
+              ${{FILE,path="{repo}/console.log"}}
+      - slack:
+          room: '#notifications'
+          auth-token-credential-id: 'SlackIntegrationToken'
+          notify-success: True
+          notify-aborted: True
+          notify-failure: True
+          base-url: 'https://vmware-vic.slack.com/services/hooks/jenkins-ci/'
+          include-custom-message: True
+          custom-message: 'vmware/{repo} Scenario Testing - ${{VSPHERE_VERSION}}/{repo}/{branch} - $BUILD_TIMESTAMP'
+
+- job-template:
+    name: 'vic-{version}-scenario'
+    defaults: 'scenario-tests'
+    builders:
+      - shell: |
+          #!/bin/bash
+          set -x
+          dest="vic-ci-logs/vmware/{branch}/"
+
+          cat > build.envfile <<ENVS
+          PARLLEL_JOBS={parallel_jobs}
+          NIMBUS_RETRY_ATTEMPTS=5
+          NIMBUS_RETRY_DELAY=1m
+          LOG_UPLOAD_DEST=$dest
+          GIT_COMMIT=$GIT_COMMIT
+          BUILD_TIMESTAMP=$BUILD_TIMESTAMP
+          BUILD_ID=$BUILD_ID
+          ESX_BUILD=$ESX_BUILD
+          VC_BUILD=$VC_BUILD
+          BUILD_TAG={repo}_${{BUILD_NUM}}
+          VCH_BUILD=${{BUILD_NUM}}.tar.gz
+          {addition_env}
+          ENVS
+
+          docker run -v $PWD/{repo}:/go --env-file vic-internal/{repo}-{version}-nightly-secrets.list --env-file build.envfile --name=${{BUILD_TAG}} gcr.io/eminent-nation-87317/vic-integration-test:1.48 tests/nightly/jenkins-nightly-run.sh ${{VSPHERE_VERSION}} ${{TEST_CASES}}

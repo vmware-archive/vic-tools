@@ -1,0 +1,27 @@
+- project:
+    name: 'scenario-tests-trigger'
+    jobs:
+      - 'vic-{version}-trigger':
+          version: 'master'
+          branch: 'master'
+      - 'vic-{version}-trigger':
+          version: '1.4.3'
+          branch: 'releases/1.4.3'
+
+- project:
+    name: 'scenario-tests'
+    default_esx_build: '8169922'
+    default_vc_build: '8217866'
+    build_timeout: '1440'
+    parallel_jobs: '1'
+    jobs:
+      - 'vic-{version}-scenario':
+          repo: 'vic'
+          version: '1.4.3'
+          branch: 'releases/1.4.3'
+          addition_env: 'VCH_BRANCH=releases/1.4.3'
+      - 'vic-{version}-scenario':
+          repo: 'vic'
+          version: 'master'
+          branch: 'master'
+          addition_env: ''
