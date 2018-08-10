@@ -117,3 +117,21 @@
           ENVS
 
           docker run -v $PWD/{repo}:/go --env-file vic-internal/{repo}-{version}-nightly-secrets.list --env-file build.envfile --name=${{BUILD_TAG}} gcr.io/eminent-nation-87317/vic-integration-test:1.48 tests/nightly/jenkins-nightly-run.sh ${{VSPHERE_VERSION}} ${{TEST_CASES}}
+
+- job-template:
+    name: 'vic-product-{version}-scenario'
+    defaults: 'scenario-tests'
+    builders:
+      - shell: |
+          #!/bin/bash
+          set -x
+          export PARLLEL_JOBS={parallel_jobs}
+          export ROBOT_REPORT=$VSPHERE_VERSION
+          export ENV_FILE={env_file}
+          export TEST_CASES=$TEST_CASES
+          export ESX_BUILD=$ESX_BUILD
+          export VC_BUILD=$VC_BUILD
+          export BUILD_TAG=$BUILD_NUM
+          {addition_env}
+
+          ./vic-product/tests/vic-product-nightly.sh

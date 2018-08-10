@@ -5,6 +5,8 @@
     job-name:
       - vic-1.4.3-scenario
       - vic-master-scenario
+      - vic-product-1.4.3-scenario
+      - vic-product-master-scenario
     columns:
       - status
       - weather

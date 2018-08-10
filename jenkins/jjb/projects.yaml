@@ -43,3 +43,15 @@
           version: 'master'
           branch: 'master'
           addition_env: ''
+      - 'vic-product-{version}-scenario':
+          repo: 'vic-product'
+          version: '1.4.3'
+          branch: 'releases/1.4.3'
+          addition_env: 'export VIC_PRODUCT_BRANCH=releases/1.4.3'
+          env_file: 'vic-product-scenario-1.4.3-secrets.list'
+      - 'vic-product-{version}-scenario':
+          repo: 'vic-product'
+          version: 'master'
+          branch: 'master'
+          addition_env: ''
+          env_file: 'vic-product-scenario-master-secrets.list'
