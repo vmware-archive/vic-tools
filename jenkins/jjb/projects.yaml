@@ -1,12 +1,30 @@
 - project:
     name: 'scenario-tests-trigger'
     jobs:
-      - 'vic-{version}-trigger':
+      - '{repo}-{version}-trigger':
+          repo: 'vic'
           version: 'master'
           branch: 'master'
-      - 'vic-{version}-trigger':
+          prefix: 'vic_'
+          bucket: 'vic-engine-builds'
+      - '{repo}-{version}-trigger':
+          repo: 'vic'
           version: '1.4.3'
           branch: 'releases/1.4.3'
+          prefix: 'vic_'
+          bucket: 'vic-engine-builds'
+      - '{repo}-{version}-trigger':
+          repo: 'vic-product'
+          version: 'master'
+          branch: 'master'
+          prefix: 'vic-dev'
+          bucket: 'vic-product-ova-builds'
+      - '{repo}-{version}-trigger':
+          repo: 'vic-product'
+          version: '1.4.3'
+          branch: 'releases/1.4.3'
+          prefix: 'vic-dev'
+          bucket: 'vic-product-ova-builds'
 
 - project:
     name: 'scenario-tests'

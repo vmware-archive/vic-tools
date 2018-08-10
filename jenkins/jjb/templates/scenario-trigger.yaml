@@ -1,6 +1,6 @@
 - job-template:
-    name: 'vic-{version}-trigger'
-    description: 'This is a parameterized build for running Nimbus scenario tests against build of vic {branch}'
+    name: '{repo}-{version}-trigger'
+    description: 'This is a parameterized build for running Nimbus scenario tests against build of {repo} {branch}'
     node: 'vic-executor'
     scm:
       - git:
@@ -12,4 +12,4 @@
     builders:
       - shell: |
           #!/bin/bash
-          docker run  --rm -v ${{WORKSPACE}}:/src wdc-harbor-ci.eng.vmware.com/default-project/ci-trigger:0.0.1 /src/jenkins/jobs/trigger/nightly_trigger.sh vic-engine-builds {branch} vic_ vic-{version}-scenario
+          docker run  --rm -v ${{WORKSPACE}}:/src wdc-harbor-ci.eng.vmware.com/default-project/ci-trigger:0.0.1 /src/jenkins/jobs/trigger/nightly_trigger.sh {bucket} {branch} {prefix} {repo}-{version}-scenario
