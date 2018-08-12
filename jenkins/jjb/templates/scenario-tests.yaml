@@ -31,7 +31,7 @@
     scm:
       - git:
           url: 'git@gitlab.eng.vmware.com:core-build/vic-internal.git'
-          credentials-id: '89094db1-3393-4148-bf08-2363af653ec1'
+          credentials-id: 'GitLabAutomationKey'
           branches:
             - 'master'
           basedir: 'vic-internal'
