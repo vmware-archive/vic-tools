@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Usage example: ./nightly_trigger.sh vic-engine-builds master vic_ vic-master-nightly
+# Usage example: ./build.sh vic-engine-builds master vic_ vic-master-nightly
 
 set -ex
 
@@ -28,16 +28,26 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 
 # Get the latest build filename
 if [ "${REPO_BRANCH}" == "master" ]; then
-    GS_PATH="${ARTIFACT_BUCKET}/"
+    GS_PATH="${ARTIFACT_BUCKET}"
 else
-    GS_PATH="${ARTIFACT_BUCKET}/${REPO_BRANCH}/"
+    GS_PATH="${ARTIFACT_BUCKET}/${REPO_BRANCH}"
 fi
-FILE_NAME=$(gsutil ls -l "gs://${GS_PATH}${BINARY_PREFIX}*" | grep -v TOTAL | sort -k2 -r | head -n1 | xargs | cut -d ' ' -f 3 | xargs basename)
+FILE_NAME=$(gsutil ls -l "gs://${GS_PATH}/${BINARY_PREFIX}*" | grep -v TOTAL | sort -k2 -r | head -n1 | xargs | cut -d ' ' -f 3 | xargs basename)
 
 # strip prefix and suffix from archive filename
-BUILD_NUM=${FILE_NAME#${BINARY_PREFIX}}
-BUILD_NUM=${BUILD_NUM%%.*}
-
+case ${ARTIFACT_BUCKET} in
+    vic-engine-builds)
+        BUILD_NUM=${FILE_NAME#${BINARY_PREFIX}}
+        BUILD_NUM=${BUILD_NUM%%.*}
+        ;;
+    "vic-product-ova-builds")
+        BUILD_NUM=$(echo ${FILE_NAME} | awk -F '-' '{NF--;  print $NF }')
+        ;;
+    *)
+        echo "Bucket ${ARTIFACT_BUCKET} is not supported."
+        exit 1
+        ;;
+esac
 echo "Trigger build ${BUILD_NUM}"
 
 # Run test on vsphere 6.0, 6.5, 6.7 alternatively

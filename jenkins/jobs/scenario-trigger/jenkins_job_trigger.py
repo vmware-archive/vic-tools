@@ -5,12 +5,12 @@ parameters, taken as command-line arguments.
 """
 
 import logging
-
 import argparse
+
 from jenkinsapi.custom_exceptions import NoBuildData
 from jenkinsapi.jenkins import Jenkins
 from jenkinsapi.api import log as jenkins_api_log
-
+from jenkinsapi.constants import STATUS_SUCCESS
 
 formatter = logging.Formatter('%(asctime)s | %(message)s', '%Y-%m-%d %H:%M:%S')
 console_handler = logging.StreamHandler()
@@ -24,9 +24,9 @@ jenkins_api_log.setLevel(logging.DEBUG)
 jenkins_api_log.addHandler(console_handler)
 
 
-def is_tested(jenkinsci, job_name, build_num):
+def is_verified(jenkinsci, job_name, build_num):
     """
-    Checks to see whether a specified build has already been tested.
+    Checks to see whether a specified build has already been verified.
     """
     try:
         job = jenkinsci[job_name]
@@ -43,6 +43,9 @@ def is_tested(jenkinsci, job_name, build_num):
         return False
 
     LOG.info('Build %s is already tested', build_num)
+    if build._data['result'] != STATUS_SUCCESS:
+        LOG.info('Build %s failed last time, rerun it', build_num)
+        return False
     return True
 
 
@@ -62,7 +65,7 @@ def main():
     args = parser.parse_args()
     jenkinsci = Jenkins(args.jenkins, username=args.username,
                         password=args.password)
-    if not is_tested(jenkinsci, args.job_name, args.build_num):
+    if not is_verified(jenkinsci, args.job_name, args.build_num):
         params = {'VSPHERE_VERSION': args.vsphere_version,
                   'ESX_BUILD': args.esx_build,
                   'VC_BUILD': args.vc_build,
