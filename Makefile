@@ -14,6 +14,8 @@
 
 SHELL = /bin/bash
 
+SHELL_FILES = $(shell find . -type f -name '*.sh')
+
 .PHONY: all check shellcheck
 .DEFAULT_GOAL := all
 
@@ -21,5 +23,4 @@ all: check
 check: shellcheck
 
 shellcheck:
-	@shellcheck **/*.sh
-
+	@docker run --rm -v $(PWD):/root -w /root -t caarlos0/shellcheck shellcheck $(SHELL_FILES)
