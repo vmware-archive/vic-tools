@@ -1,12 +1,16 @@
 # Building:
-# docker build --no-cache -t vic-downstream .
-# docker tag vic-downstream gcr.io/eminent-nation-87317/vic-downstream-trigger:1.x
+# docker build --no-cache -t vic-downstream-trigger .
+# docker tag vic-downstream-trigger gcr.io/eminent-nation-87317/vic-downstream-trigger:1.x
 # gcloud auth login
 # gcloud docker -- push gcr.io/eminent-nation-87317/vic-downstream-trigger:1.x
-# docker tag vic-downstream wdc-harbor-ci.eng.vmware.com/default-project/vic-downstream-trigger:1.x
+# docker tag vic-downstream-trigger wdc-harbor-ci.eng.vmware.com/default-project/vic-downstream-trigger:1.x
 # docker login wdc-harbor-ci.eng.vmware.com/default-project
 # docker push wdc-harbor-ci.eng.vmware.com/default-project/vic-downstream-trigger:1.x
 FROM vmware/photon:2.0
+
+LABEL name="vic-downstream-trigger"
+# The version should be increased each time the file is changed
+LABEL version="1.4"
 
 RUN set -eux; \
      tdnf distro-sync --refresh -y; \
