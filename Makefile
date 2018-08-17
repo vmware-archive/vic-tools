@@ -14,12 +14,15 @@
 
 SHELL = /bin/bash
 
-.PHONY: all check shellcheck
+.PHONY: all check shellcheck dockerfile_lint
 .DEFAULT_GOAL := all
 
 all: check
-check: shellcheck
+check: shellcheck dockerfile_lint
 
 shellcheck:
 	@shellcheck **/*.sh
+
+dockerfile_lint:
+	@docker run -it --rm --privileged -v $(PWD):/root/ projectatomic/dockerfile-lint dockerfile_lint -p -f images/*/Dockerfile
 
