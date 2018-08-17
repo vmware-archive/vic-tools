@@ -24,7 +24,7 @@ JENKINS_JOB=$4
 JENKINS_URL=https://vic-jenkins.eng.vmware.com/
 JENKINS_USER=svc.vicuser
 JENKINS_PASSWD=bx741zG2rMN7G9PuXCh
-SCRIPT_DIR=$(cd $(dirname "$0") && pwd)
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 
 # Get the latest build filename
 if [ "${REPO_BRANCH}" == "master" ]; then
@@ -32,7 +32,7 @@ if [ "${REPO_BRANCH}" == "master" ]; then
 else
     GS_PATH="${ARTIFACT_BUCKET}/${REPO_BRANCH}/"
 fi
-FILE_NAME=$(gsutil ls -l gs://${GS_PATH}${BINARY_PREFIX}* | grep -v TOTAL | sort -k2 -r | head -n1 | xargs | cut -d ' ' -f 3 | xargs basename)
+FILE_NAME=$(gsutil ls -l "gs://${GS_PATH}${BINARY_PREFIX}*" | grep -v TOTAL | sort -k2 -r | head -n1 | xargs | cut -d ' ' -f 3 | xargs basename)
 
 # strip prefix and suffix from archive filename
 BUILD_NUM=${FILE_NAME#${BINARY_PREFIX}}
@@ -42,7 +42,7 @@ echo "Trigger build ${BUILD_NUM}"
 
 # Run test on vsphere 6.0, 6.5, 6.7 alternatively
 DAY="$(date +'%u')"
-REM=$(( $DAY % 3 ))
+REM=$(( "$DAY" % 3 ))
 if [ ${REM} -eq 0 ]; then
     export VC_BUILD_ID="ob-8217866"
     export ESX_BUILD_ID="ob-8169922"
@@ -60,4 +60,4 @@ echo "VC build: ${VC_BUILD_ID}"
 echo "ESX build: ${ESX_BUILD_ID}"
 echo "vSPhere version: ${VSPHERE_VERSION}"
 
-python ${SCRIPT_DIR}/jenkins_job_trigger.py "${JENKINS_URL}" "${JENKINS_USER}" "${JENKINS_PASSWD}" "${VSPHERE_VERSION}" "${VC_BUILD_ID}" "${ESX_BUILD_ID}" "${BUILD_NUM}" "${JENKINS_JOB}"
+python "${SCRIPT_DIR}/jenkins_job_trigger.py" "${JENKINS_URL}" "${JENKINS_USER}" "${JENKINS_PASSWD}" "${VSPHERE_VERSION}" "${VC_BUILD_ID}" "${ESX_BUILD_ID}" "${BUILD_NUM}" "${JENKINS_JOB}"
