@@ -14,15 +14,24 @@
 
 SHELL = /bin/bash -O globstar
 
-.PHONY: all check shellcheck dockerfile_lint
+PYTHON_FILES = $(shell find . -type f -name '*.py')
+
+.PHONY: all check shellcheck dockerfile_lint check-python pylint flake8
 .DEFAULT_GOAL := all
 
 all: check
-check: shellcheck dockerfile_lint
+check: shellcheck dockerfile_lint check-python
+check-python: pylint flake8
 
 shellcheck:
 	@shellcheck **/*.sh
 
 dockerfile_lint:
 	@docker run -it --rm --privileged -v $(PWD):/root/ projectatomic/dockerfile-lint dockerfile_lint -p -f images/*/Dockerfile
+
+pylint:
+	@docker run --rm -v $(PWD):/code eeacms/pylint
+
+flake8:
+	@docker run --rm -v $(PWD):/apps alpine/flake8:3.5.0 $(PYTHON_FILES)
 
