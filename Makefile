@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-SHELL = /bin/bash
+SHELL = /bin/bash -O globstar
 
 .PHONY: all check shellcheck dockerfile_lint
 .DEFAULT_GOAL := all
