@@ -1,4 +1,8 @@
 #!/usr/bin/python
+"""
+Allows a Jenkins "trigger job" to trigger a "test job" with a specified set of
+parameters, taken as command-line arguments.
+"""
 
 import logging
 
@@ -21,20 +25,25 @@ jenkins_api_log.addHandler(console_handler)
 
 
 def is_tested(jenkinsci, job_name, build_num):
+    """
+    Checks to see whether a specified build has already been tested.
+    """
     try:
         job = jenkinsci[job_name]
         build = job.get_last_build()
     except NoBuildData:
         LOG.warning('No build data found in job %s', job_name)
         return False
+
     last_build_id = build._data['displayName']
-    LOG.info('Last build of job %s is %s' % (job, last_build_id))
+    LOG.info('Last build of job %s is %s', job, last_build_id)
+
     if last_build_id != build_num:
         LOG.info('Build %s is not tested yet', build_num)
         return False
-    else:
-        LOG.info('Build %s is already tested', build_num)
-        return True
+
+    LOG.info('Build %s is already tested', build_num)
+    return True
 
 
 def main():
@@ -59,7 +68,8 @@ def main():
                   'VC_BUILD': args.vc_build,
                   'BUILD_NUM': args.build_num}
         jenkinsci.build_job(jobname=args.job_name, params=params)
-        LOG.debug('Triggered job %s with parameters %s.', args.job_name, params)
+        LOG.debug('Triggered job %s with parameters %s.', args.job_name,
+                  params)
 
 
 if __name__ == '__main__':
