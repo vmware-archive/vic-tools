@@ -36,15 +36,15 @@
             - 'master'
           basedir: 'vic-internal'
       - git:
-          url: 'https://github.com/vmware/{repo}'
-          branches:
-            - '{branch}'
-          basedir: '{repo}'
-      - git:
           url: 'https://github.com/vmware/vic-tools'
           branches:
             - 'master'
           basedir: 'vic-tools'
+      - git:
+          url: 'https://github.com/vmware/{repo}'
+          branches:
+            - '{branch}'
+          basedir: '{repo}'
     wrappers:
       - timeout:
           name: absolute_timeout
@@ -131,7 +131,7 @@
           #!/bin/bash
           set -x
 
-          ./vic-tools/jenkins/jobs/vic-product-scenario/selenium_grid.sh create {version}
+          ./vic-tools/jenkins/jobs/vic-product-scenario/selenium_grid.sh create {version} {parallel_jobs}
 
           cat > build.envfile <<ENVS
           PARALLEL_JOBS={parallel_jobs}
@@ -146,4 +146,172 @@
           ENVS
 
           docker run --net grid-{version} --privileged --rm --link selenium-hub-{version}:selenium-grid-hub -v /var/run/docker.sock:/var/run/docker.sock -v /etc/docker/certs.d:/etc/docker/certs.d -v "${{WORKSPACE}}":/go -v /vic-cache:/vic-cache --env-file "vic-internal/{repo}-scenario-{version}-secrets.list" --env-file build.envfile gcr.io/eminent-nation-87317/vic-integration-test:1.46 vic-tools/jenkins/jobs/vic-product-scenario/build.sh ${{TEST_CASES}}
-          ./vic-tools/jenkins/jobs/vic-product-scenario/selenium_grid.sh remove {version}
+          ./vic-tools/jenkins/jobs/vic-product-scenario/selenium_grid.sh remove {version} {parallel_jobs}
+
+- defaults:
+    name: 'pr-tests'
+    description: 'This is a parameterized build for verifying your test code in a PR'
+    node: '{node}'
+    parameters:
+      - choice:
+          name: VSPHERE_VERSION
+          choices:
+            - '6.7'
+            - '6.5'
+            - '6.0'
+          description: 'The version of vSphere to run against. Skipped tests are determined by it.'
+      - string:
+          name: ESX_BUILD
+          default: '{default_esx_build}'
+          description: 'The build of ESX to deploy, e.g. ob-8169922 (6.7 default).'
+      - string:
+          name: VC_BUILD
+          default: '{default_vc_build}'
+          description: 'The build of VC to deploy, e.g. ob-8217866 (6.7 default).'
+      - string:
+          name: TEST_BRANCH
+          default: ''
+          description: 'Must specified. {repo} branch to check out tests from. May be a pull request, e.g. "pull/8063"'
+      - string:
+          name: BUILD_BRANCH
+          default: ''
+          description: 'This is {repo} branch to fetch build from google storage bucket, e.g. releases/1.4.3. master by default'
+      - string:
+          name: BUILD_NUM
+          default: ''
+          description: 'Build number to test. Get latest build in the google storage bucket folder if not specified'
+      - string:
+          name: NIMBUS_USER
+          default: ''
+          description: 'Must specified. The username of the nimbus user with which to run the tests'
+      - password:
+          name: NIMBUS_PASSWORD
+          default: ''
+          description: 'Must specified. The password of the nimbus user with which to run the tests'
+      - choice:
+          name: PARALLEL_JOBS
+          choices:
+            - '1'
+            - '2'
+            - '3'
+            - '4'
+          description: 'The parallel executor of robot tests.'
+      - string:
+          name: TEST_CASES
+          default: ''
+          description: |
+            The specific test cases to run as part of the job. These are passed as arguments to pabot so will likely be of the form "tests/manual-test-cases/Group23-Future-Tests"
+            Runs the default set of tests if left empty.
+    scm:
+      - git:
+          url: 'git@gitlab.eng.vmware.com:core-build/vic-internal.git'
+          credentials-id: 'GitLabAutomationKey'
+          branches:
+            - 'master'
+          basedir: 'vic-internal'
+      - git:
+          url: 'https://github.com/vmware/vic-tools'
+          branches:
+            - 'master'
+          basedir: 'vic-tools'
+      - git:
+          url: 'https://github.com/vmware/{repo}'
+          branches:
+            - '${{TEST_BRANCH}}'
+          basedir: '{repo}'
+          name: ''
+          refspec: '+refs/heads/*:refs/remotes/origin/* +refs/pull/*/head:refs/remotes/origin/pull/*'
+    wrappers:
+      - timeout:
+          name: absolute_timeout
+          timeout: '{build_timeout}'
+          abort: true
+          type: absolute
+      - workspace-cleanup
+    publishers:
+      - robot:
+          output-path: '{repo}/report'
+          pass-threshold: '100'
+          unstable-threshold: '100'
+      - groovy-postbuild:
+          script: |
+              def vc_build = manager.envVars['VC_BUILD']
+              def esx_build = manager.envVars['ESX_BUILD']
+              def vsphere_version = manager.envVars.get('VSPHERE_VERSION')
+              def summary = manager.createSummary("gear2.gif")
+              summary.appendText("Infrastructure Builds:<ul>", false)
+              summary.appendText("<li><b>vSphere Version</b> - ${{vsphere_version}}</li>", false)
+              summary.appendText("<li><b>vCenter</b> - ${{vc_build}}</li>", false)
+              summary.appendText("<li><b>ESXi</b> - ${{esx_build}}</li>", false)
+      - email-ext:
+          success: true
+          aborted: true
+          failure: true
+          content-type: html
+          send-to:
+            - requester
+          subject: 'vmware/{repo} PR Testing - ${{TEST_BRANCH}}'
+          body: |
+              Download link for the test logs is in the <a href="${{BUILD_URL}}/console">build console output</a>
+              <p>
+              ${{VSPHERE_VERSION}} Jenkins Nimbus Scenario Job: <a href="${{BUILD_URL}}">${{BUILD_URL}}</a>
+              <p>
+              Run Report: ${{ROBOT_REPORTLINK}}
+              <p>
+              ${{FILE,path="{repo}/console.log"}}
+
+- job-template:
+    name: 'vic-pr-test'
+    defaults: 'pr-tests'
+    builders:
+      - shell: |
+          #!/bin/bash
+          dest="vic-ci-logs/vmware/${{TEST_BRANCH}}/"
+
+          cat > build.envfile <<ENVS
+          PARALLEL_JOBS=${{PARALLEL_JOBS}}
+          NIMBUS_RETRY_ATTEMPTS=5
+          NIMBUS_RETRY_DELAY=1m
+          LOG_UPLOAD_DEST=${{dest}}
+          GIT_COMMIT=${{GIT_COMMIT}}
+          BUILD_TIMESTAMP=${{BUILD_TIMESTAMP}}
+          BUILD_ID=${{BUILD_ID}}
+          ESX_BUILD=${{ESX_BUILD}}
+          VC_BUILD=${{VC_BUILD}}
+          BUILD_TAG=vic_${{BUILD_NUM}}
+          VCH_BUILD=${{BUILD_NUM}}
+          VCH_BRANCH=${{BUILD_BRANCH}}
+          ENVS
+
+          docker run --rm -v "${{WORKSPACE}}":/go --env-file vic-internal/{repo}-scenario-master-secrets.list --env-file build.envfile -e NIMBUS_USER="${{NIMBUS_USER}}" -e NIMBUS_PASSWORD="${{NIMBUS_PASSWORD}}" --name=${{BUILD_TAG}} gcr.io/eminent-nation-87317/vic-integration-test:1.48 vic-tools/jenkins/jobs/vic-scenario/build.sh ${{VSPHERE_VERSION}} ${{TEST_CASES}}
+
+- job-template:
+    name: 'vic-product-pr-test'
+    defaults: 'pr-tests'
+    builders:
+      - shell: |
+          #!/bin/bash
+          set -x
+
+          if [ -z "${{TEST_BRANCH}}" ] || [ -z "${{NIMBUS_USER}}" ] || [ -z "${{NIMBUS_PASSWORD}}" ]; then
+            echo "TEST_BRANCH, NIMBUS_USER and NIMBUS_PASSWORD are must specified"
+            exit 1
+          fi
+          ./vic-tools/jenkins/jobs/vic-product-scenario/selenium_grid.sh create ${{BUILD_ID}} ${{PARALLEL_JOBS}}
+
+          cat > build.envfile <<ENVS
+          PARALLEL_JOBS=${{PARALLEL_JOBS}}
+          ROBOT_REPORT=report
+          NIMBUS_RETRY_ATTEMPTS=5
+          NIMBUS_RETRY_DELAY=1m
+          ESX_BUILD=${{ESX_BUILD}}
+          VC_BUILD=${{VC_BUILD}}
+          BUILD_TAG=vic-product_${{BUILD_NUM}}
+          VIC_PRODUCT_BUILD=${{BUILD_NUM}}
+          VIC_PRODUCT_BRANCH=${{BUILD_BRANCH}}
+          ENVS
+
+          set +x
+          docker run --net grid-${{BUILD_ID}} --privileged --rm --link selenium-hub-${{BUILD_ID}}:selenium-grid-hub -v /var/run/docker.sock:/var/run/docker.sock -v /etc/docker/certs.d:/etc/docker/certs.d -v "${{WORKSPACE}}":/go -v /vic-cache:/vic-cache --env-file "vic-internal/{repo}-scenario-master-secrets.list" --env-file build.envfile -e NIMBUS_USER="${{NIMBUS_USER}}" -e NIMBUS_PASSWORD="${{NIMBUS_PASSWORD}}" gcr.io/eminent-nation-87317/vic-integration-test:1.46 vic-tools/jenkins/jobs/vic-product-scenario/build.sh ${{TEST_CASES}}
+          set -x
+          ./vic-tools/jenkins/jobs/vic-product-scenario/selenium_grid.sh remove ${{BUILD_ID}} ${{PARALLEL_JOBS}}

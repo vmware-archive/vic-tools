@@ -32,7 +32,7 @@ VC_67_VERSION="ob-8217866"
 
 DEFAULT_LOG_UPLOAD_DEST="vic-ci-logs"
 DEFAULT_ARTIFACT_BUCKET="vic-engine-builds"
-DEFAULT_VCH_BRANCH=""
+DEFAULT_VCH_BRANCH="master"
 DEFAULT_VCH_BUILD="*"
 DEFAULT_TESTCASES=("tests/manual-test-cases/Group5-Functional-Tests" "tests/manual-test-cases/Group13-vMotion" "tests/manual-test-cases/Group21-Registries" "tests/manual-test-cases/Group23-Future-Tests")
 
@@ -65,7 +65,7 @@ testcases=("${@:-${DEFAULT_TESTCASES[@]}}")
 VCH_BUILD=${VCH_BUILD:-${DEFAULT_VCH_BUILD}}
 VCH_BRANCH=${VCH_BRANCH:-${DEFAULT_VCH_BRANCH}}
 ARTIFACT_BUCKET=${ARTIFACT_BUCKET:-${DEFAULT_ARTIFACT_BUCKET}}
-if [ "${VCH_BRANCH}" == "master" ]; then
+if [ "${VCH_BRANCH}" == "${DEFAULT_VCH_BRANCH}" ]; then
     GS_PATH="${ARTIFACT_BUCKET}"
 else
     GS_PATH="${ARTIFACT_BUCKET}/${VCH_BRANCH}"
@@ -125,7 +125,7 @@ pushd vic
         echo "Tarball extraction passed, Running nightlies test.."
     fi
 
-    pabot --processes ${PARALLEL_JOBS} --removekeywords TAG:secret ${excludes} --variable ESX_VERSION:"${ESX_BUILD}" --variable VC_VERSION:"${VC_BUILD}" -d report "${testcases[@]}"
+    pabot --processes ${PARALLEL_JOBS} ${excludes} --variable ESX_VERSION:"${ESX_BUILD}" --variable VC_VERSION:"${VC_BUILD}" -d report "${testcases[@]}"
     cat report/pabot_results/*/stdout.txt | grep '::' | grep -E 'PASS|FAIL' > console.log
 
     # See if any VMs leaked

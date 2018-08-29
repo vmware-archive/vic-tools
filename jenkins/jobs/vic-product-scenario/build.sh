@@ -31,7 +31,7 @@ VC_67_VERSION="ob-8217866"
 
 DEFAULT_TESTCASES=("tests/manual-test-cases")
 
-DEFAULT_VIC_PRODUCT_BRANCH=""
+DEFAULT_VIC_PRODUCT_BRANCH="master"
 DEFAULT_VIC_PRODUCT_BUILD="*"
 
 DEFAULT_PARALLEL_JOBS=4
@@ -61,7 +61,7 @@ ${GCS_BUCKET:="vic-product-ova-builds"}
 
 VIC_PRODUCT_BRANCH=${VIC_PRODUCT_BRANCH:-${DEFAULT_VIC_PRODUCT_BRANCH}}
 VIC_PRODUCT_BUILD=${VIC_PRODUCT_BUILD:-${DEFAULT_VIC_PRODUCT_BUILD}}
-if [ "${VIC_PRODUCT_BRANCH}" == "master" ]; then
+if [ "${VIC_PRODUCT_BRANCH}" == "${DEFAULT_VIC_PRODUCT_BRANCH}" ]; then
     GS_PATH="${GCS_BUCKET}"
 else
     GS_PATH="${GCS_BUCKET}/${VIC_PRODUCT_BRANCH}"
@@ -91,7 +91,7 @@ pushd ${WORKSPACE_DIR}/vic-product
     echo "VIC Product OVA download complete..."
 
     PARALLEL_JOBS=${PARALLEL_JOBS:-${DEFAULT_PARALLEL_JOBS}}
-    pabot --verbose --processes "${PARALLEL_JOBS}" -d report --removekeywords TAG:secret "${excludes[@]}" --variable ESX_VERSION:"${ESX_BUILD}" --variable VC_VERSION:"${VC_BUILD}" "${testcases[@]}"
+    pabot --verbose --processes "${PARALLEL_JOBS}" -d report "${excludes[@]}" --variable ESX_VERSION:"${ESX_BUILD}" --variable VC_VERSION:"${VC_BUILD}" "${testcases[@]}"
     cat report/pabot_results/*/stdout.txt | grep -E '::|\.\.\.' | grep -E 'PASS|FAIL' > console.log
 
     # Pretty up the email results
