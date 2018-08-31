@@ -28,23 +28,23 @@ start_node () {
 
 remove_all () {
     echo "Kill any old selenium infrastructure..."
-    docker rm -f ${HUB_NM} ${NODE1_NM} ${NODE2_NM} ${NODE3_NM} ${NODE4_NM}
+    docker rm -f ${HUB_NM}
+    for i in $(seq 1 ${COUNT_NUM}); do
+        docker rm -f "firefox${i}-${SUFFIX}"
+    done
     docker network prune -f
 }
 
-if [ $# -ne 2 ] ; then
-    echo "Usage: $0 create/remove suffix"
+if [ $# -ne 3 ] ; then
+    echo "Usage: $0 create/remove suffix count"
     exit 1
 fi
 
 ACTION=$1
 SUFFIX=$2
+COUNT_NUM=$3
 NETWORK="grid-${SUFFIX}"
 HUB_NM="selenium-hub-${SUFFIX}"
-NODE1_NM="firefox1-${SUFFIX}"
-NODE2_NM="firefox2-${SUFFIX}"
-NODE3_NM="firefox3-${SUFFIX}"
-NODE4_NM="firefox4-${SUFFIX}"
 
 case ${ACTION} in
     create)
@@ -59,11 +59,10 @@ case ${ACTION} in
             fi
             sleep 3;
         done
-
-        start_node ${NODE1_NM} selenium/node-firefox:3.9.1
-        start_node ${NODE2_NM} selenium/node-firefox:3.9.1
-        start_node ${NODE3_NM} selenium/node-firefox:3.9.1
-        start_node ${NODE4_NM} selenium/node-firefox:3.9.1
+        
+        for i in $(seq 1 ${COUNT_NUM}); do
+            start_node "firefox${i}-${SUFFIX}" selenium/node-firefox:3.9.1
+        done
         ;;
     remove)
         remove_all

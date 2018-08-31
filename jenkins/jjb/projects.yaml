@@ -53,3 +53,9 @@
           version: 'master'
           branch: 'master'
           node: 'vic-executor1'
+      - 'vic-pr-test':
+          repo: 'vic'
+          node: 'vic-executor'
+      - 'vic-product-pr-test':
+          repo: 'vic-product'
+          node: 'vic-executor1'
