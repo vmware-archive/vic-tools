@@ -98,5 +98,6 @@ pushd ${WORKSPACE_DIR}/vic-product
     sed -i -e 's/^/<br>/g' console.log
     sed -i -e 's|PASS|<font color="green">PASS</font>|g' console.log
     sed -i -e 's|FAIL|<font color="red">FAIL</font>|g' console.log
+    cp -R test-screenshots report 2>/dev/null || echo "no test-screenshots directory"
 popd
 

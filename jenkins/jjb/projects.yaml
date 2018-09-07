@@ -48,14 +48,25 @@
           version: '1.4.3'
           branch: 'releases/1.4.3'
           node: 'vic-executor1'
+          build_timeout: '1800'
       - 'vic-product-{version}-scenario':
           repo: 'vic-product'
           version: 'master'
           branch: 'master'
           node: 'vic-executor1'
+          build_timeout: '1800'
       - 'vic-pr-test':
           repo: 'vic'
           node: 'vic-executor'
       - 'vic-product-pr-test':
           repo: 'vic-product'
           node: 'vic-executor1'
+      - 'vic-release-scenario-test':
+          repo: 'vic'
+          branch: 'releases/1.4.3'
+          node: 'vic-executor'
+      - 'vic-product-release-scenario-test':
+          repo: 'vic-product'
+          branch: 'releases/1.4.3'
+          node: 'vic-executor1'
+          build_timeout: '1800'

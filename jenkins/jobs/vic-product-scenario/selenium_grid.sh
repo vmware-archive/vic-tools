@@ -51,7 +51,7 @@ case ${ACTION} in
         remove_all
         echo "Create the network, hub and workers..."
         docker network create ${NETWORK}
-        docker run -d --net ${NETWORK} --name ${HUB_NM} selenium/hub:3.9.1
+        docker run -d --net ${NETWORK} --name ${HUB_NM} selenium/hub:3.10.0
         for _ in $(seq 1 10); do
             if [[ "$(docker logs ${HUB_NM} 2>&1)" = *"Selenium Grid hub is up and running"* ]]; then
                 echo 'Selenium Server is up and running';
@@ -61,7 +61,7 @@ case ${ACTION} in
         done
         
         for i in $(seq 1 ${COUNT_NUM}); do
-            start_node "firefox${i}-${SUFFIX}" selenium/node-firefox:3.9.1
+            start_node "firefox${i}-${SUFFIX}" selenium/node-firefox:3.10.0
         done
         ;;
     remove)

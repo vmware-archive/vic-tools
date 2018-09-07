@@ -9,6 +9,8 @@
       - vic-product-master-scenario
       - vic-product-pr-test
       - vic-pr-test
+      - vic-release-scenario-test
+      - vic-product-release-scenario-test
     columns:
       - status
       - weather
