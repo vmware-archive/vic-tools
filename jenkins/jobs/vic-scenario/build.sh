@@ -57,6 +57,7 @@ fi
 target="$1"
 echo "Target version: ${target}"
 shift
+shift
 # Take the remaining CLI arguments as a test case list - this is treated as an array to preserve quoting when passing to pabot
 testcases=("${@:-${DEFAULT_TESTCASES[@]}}")
 
@@ -125,7 +126,7 @@ pushd vic
         echo "Tarball extraction passed, Running nightlies test.."
     fi
 
-    pabot --processes ${PARALLEL_JOBS} ${excludes} --variable ESX_VERSION:"${ESX_BUILD}" --variable VC_VERSION:"${VC_BUILD}" -d report "${testcases[@]}"
+    pabot --processes ${PARALLEL_JOBS} ${excludes} --variable ESX_VERSION:"${ESX_BUILD}" --variable VC_VERSION:"${VC_BUILD}" --variable NIMBUS_LOCATION:"$2" -d report "${testcases[@]}"
     cat report/pabot_results/*/stdout.txt | grep '::' | grep -E 'PASS|FAIL' > console.log
 
     # See if any VMs leaked
