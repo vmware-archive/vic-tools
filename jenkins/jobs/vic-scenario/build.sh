@@ -54,6 +54,7 @@ if [[ $1 != "6.0" && $1 != "6.5" && $1 != "6.7" ]]; then
 fi
 
 # process the CLI arguments
+NIMBUS_LOCATION="$2"
 target="$1"
 echo "Target version: ${target}"
 shift
@@ -126,7 +127,7 @@ pushd vic
         echo "Tarball extraction passed, Running nightlies test.."
     fi
 
-    pabot --processes ${PARALLEL_JOBS} ${excludes} --variable ESX_VERSION:"${ESX_BUILD}" --variable VC_VERSION:"${VC_BUILD}" --variable NIMBUS_LOCATION:"$2" -d report "${testcases[@]}"
+    pabot --processes ${PARALLEL_JOBS} ${excludes} --variable ESX_VERSION:"${ESX_BUILD}" --variable VC_VERSION:"${VC_BUILD}" --variable NIMBUS_LOCATION:"${NIMBUS_LOCATION}" -d report "${testcases[@]}"
     cat report/pabot_results/*/stdout.txt | grep '::' | grep -E 'PASS|FAIL' > console.log
 
     # See if any VMs leaked
