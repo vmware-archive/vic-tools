@@ -54,10 +54,9 @@ if [[ $1 != "6.0" && $1 != "6.5" && $1 != "6.7" ]]; then
 fi
 
 # process the CLI arguments
-NIMBUS_LOCATION="$2"
+NIMBUS_LOCATION=${NIMBUS_LOCATION:-sc}
 target="$1"
 echo "Target version: ${target}"
-shift
 shift
 # Take the remaining CLI arguments as a test case list - this is treated as an array to preserve quoting when passing to pabot
 testcases=("${@:-${DEFAULT_TESTCASES[@]}}")
