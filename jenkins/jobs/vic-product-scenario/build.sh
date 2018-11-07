@@ -29,7 +29,8 @@ ESX_67_VERSION="ob-8169922"
 VC_67_VERSION="ob-8217866"
 
 
-DEFAULT_TESTCASES=("tests/manual-test-cases")
+#DEFAULT_TESTCASES=("tests/manual-test-cases")
+DEFAULT_TESTCASES=("tests/manual-test-cases/Group2-OVA-Features" "tests/manual-test-cases/Group5-Interoperability-Tests" "tests/manual-test-cases/Group6-OVA-TLS" "tests/manual-test-cases/Group7-Upgrade" "tests/manual-test-cases/Group8-Manual-Upgrade" "tests/manual-test-cases/Group9-VIC-UI")
 
 DEFAULT_VIC_PRODUCT_BRANCH="master"
 DEFAULT_VIC_PRODUCT_BUILD="*"
