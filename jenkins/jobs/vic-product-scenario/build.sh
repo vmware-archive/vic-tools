@@ -14,6 +14,7 @@
 # limitations under the License
 set -x
 
+SCRIPT_DIR=$(dirname "$0")
 WORKSPACE_DIR=$(cd $(dirname "$0")/../../../.. && pwd)
 
 # 6.0u3
@@ -94,6 +95,13 @@ pushd ${WORKSPACE_DIR}/vic-product
     PARALLEL_JOBS=${PARALLEL_JOBS:-${DEFAULT_PARALLEL_JOBS}}
     pabot --verbose --processes "${PARALLEL_JOBS}" -d report "${excludes[@]}" --variable ESX_VERSION:"${ESX_BUILD}" --variable VC_VERSION:"${VC_BUILD}" "${testcases[@]}"
     cat report/pabot_results/*/stdout.txt | grep -E '::|\.\.\.' | grep -E 'PASS|FAIL' > console.log
+
+    # archive the logs
+    logarchive="vic-product-scenarios_${BUILD_ID}_${BUILD_TIMESTAMP}.zip"
+    /usr/bin/zip -9 -r "${logarchive}" report *.tar.gz
+    if [ $? -eq 0 ]; then
+        ${SCRIPT_DIR}/upload-logs.sh ${logarchive} vic-product-logs/test
+    fi
 
     # Pretty up the email results
     sed -i -e 's/^/<br>/g' console.log
