@@ -17,10 +17,6 @@
 source=${1:?A source file must be specified}
 # The target destination in cloud storage. If the destination ends with a / it will be treated as a directory.
 # If not it _may_ be treated as a directory or a file depending on current remote objects. see gsutil cp doc.
-<<<<<<< HEAD
-=======
-#dest=${2:?A bucket must be specified, eg vic-ci-logs, or vic-ci-logs/user/branch/}
->>>>>>> e24bf01f72b307abd05873ccf2a9566b54637693
 dest=${2:?A bucket must be specified, eg vic-product-logs}
 
 if [ ! -r "${source}" ]; then

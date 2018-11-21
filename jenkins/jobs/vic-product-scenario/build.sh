@@ -96,24 +96,20 @@ pushd ${WORKSPACE_DIR}/vic-product
     pabot --verbose --processes "${PARALLEL_JOBS}" -d report "${excludes[@]}" --variable ESX_VERSION:"${ESX_BUILD}" --variable VC_VERSION:"${VC_BUILD}" "${testcases[@]}"
     cat report/pabot_results/*/stdout.txt | grep -E '::|\.\.\.' | grep -E 'PASS|FAIL' > console.log
 
-    # archive the logs
-    logarchive="vic-product-scenarios_${BUILD_ID}_${BUILD_TIMESTAMP}.zip"
-    /usr/bin/zip -9 -r "${logarchive}" report *.tar.gz
-    if [ $? -eq 0 ]; then
-        ${SCRIPT_DIR}/upload-logs.sh ${logarchive} vic-product-logs/test
-    fi
-
     # Pretty up the email results
     sed -i -e 's/^/<br>/g' console.log
     sed -i -e 's|PASS|<font color="green">PASS</font>|g' console.log
     sed -i -e 's|FAIL|<font color="red">FAIL</font>|g' console.log
     cp -R test-screenshots report 2>/dev/null || echo "no test-screenshots directory"
-        # archive the logs
-    logarchive="vic-product-scenarios__${BUILD_TIMESTAMP}.zip"
+    mv *.tar.gz report 2>/dev/null || echo "no appliance log to collect"
+    # archive the logs
+    upload_logs=0
+    logarchive="vic-product-scenarios_${BUILD_ID}_${BUILD_TIMESTAMP}.zip"
     /usr/bin/zip -9 -r "${logarchive}" report
     if [ $? -eq 0 ]; then
-        ${SCRIPT_DIR}/upload-logs.sh ${logarchive} vic-product-logs/test
+        upload_logs=1
     fi
-
 popd
-
+if [ $upload_logs -eq 1 ]; then
+   ${SCRIPT_DIR}/upload-logs.sh ./vic-product/${logarchive} vic-product-logs/test
+fi
