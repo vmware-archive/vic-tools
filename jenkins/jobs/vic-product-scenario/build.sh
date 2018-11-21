@@ -108,5 +108,12 @@ pushd ${WORKSPACE_DIR}/vic-product
     sed -i -e 's|PASS|<font color="green">PASS</font>|g' console.log
     sed -i -e 's|FAIL|<font color="red">FAIL</font>|g' console.log
     cp -R test-screenshots report 2>/dev/null || echo "no test-screenshots directory"
+        # archive the logs
+    logarchive="vic-product-scenarios__${BUILD_TIMESTAMP}.zip"
+    /usr/bin/zip -9 -r "${logarchive}" report
+    if [ $? -eq 0 ]; then
+        ${SCRIPT_DIR}/upload-logs.sh ${logarchive} vic-product-logs/test
+    fi
+
 popd
 
