@@ -34,6 +34,7 @@ else
 fi
 FILE_NAME=$(gsutil ls -l "gs://${GS_PATH}/${BINARY_PREFIX}*" | grep -v TOTAL | sort -k2 -r | head -n1 | xargs | cut -d ' ' -f 3 | xargs basename)
 
+CHECK_RELEASE_COUNT=3
 # strip prefix and suffix from archive filename
 case ${ARTIFACT_BUCKET} in
     vic-engine-builds)
@@ -51,8 +52,8 @@ esac
 echo "Trigger build ${BUILD_NUM}"
 
 # Run test on vsphere 6.0, 6.5, 6.7 alternatively
-DAY="$(date +'%u')"
-REM=$(( "$DAY" % 3 ))
+DAY=`date +%u`
+REM=$(( $DAY % $CHECK_RELEASE_COUNT ))
 if [ ${REM} -eq 0 ]; then
     export VC_BUILD_ID="ob-8217866"
     export ESX_BUILD_ID="ob-8169922"

@@ -45,6 +45,7 @@ case "$VSPHERE_VERSION" in
         excludes+=(--exclude nsx)
         ESX_BUILD=${ESX_BUILD:-$ESX_60_VERSION}
         VC_BUILD=${VC_BUILD:-$VC_60_VERSION}
+        DEFAULT_TESTCASES=("tests/manual-test-cases/Group2-OVA-Features" "tests/manual-test-cases/Group6-OVA-TLS" "tests/manual-test-cases/Group7-Upgrade" "tests/manual-test-cases/Group8-Manual-Upgrade" "tests/manual-test-cases/Group9-VIC-UI")
         ;;
     "6.5")
         ESX_BUILD=${ESX_BUILD:-$ESX_65_VERSION}
