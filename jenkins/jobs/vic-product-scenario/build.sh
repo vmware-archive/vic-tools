@@ -103,13 +103,15 @@ pushd ${WORKSPACE_DIR}/vic-product
     sed -i -e 's|FAIL|<font color="red">FAIL</font>|g' console.log
     cp -R test-screenshots report 2>/dev/null || echo "no test-screenshots directory"
     mv *.tar.gz report 2>/dev/null || echo "no appliance log to collect"
-    # archive the logs
+
     upload_logs=0
-    logarchive="vic-product-scenarios_${BUILD_ID}_${BUILD_TIMESTAMP}.zip"
-    /usr/bin/zip -9 -r "${logarchive}" report
-    if [ $? -eq 0 ]; then
-        upload_logs=1
-    fi
+    # archive the logs
+# disable post log to google cloud, since jenkins can show those appliance bundle log now
+#    logarchive="vic-product-scenarios_${BUILD_ID}_${BUILD_TIMESTAMP}.zip"
+#    /usr/bin/zip -9 -r "${logarchive}" report
+#    if [ $? -eq 0 ]; then
+#        upload_logs=1
+#    fi
 popd
 if [ $upload_logs -eq 1 ]; then
    ${SCRIPT_DIR}/upload-logs.sh ./vic-product/${logarchive} vic-product-logs/test
