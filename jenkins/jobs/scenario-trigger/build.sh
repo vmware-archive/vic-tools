@@ -55,8 +55,12 @@ echo "Trigger build ${BUILD_NUM}"
 DAY=`date +%u`
 REM=$(( $DAY % $CHECK_RELEASE_COUNT ))
 if [ ${REM} -eq 0 ]; then
-    export VC_BUILD_ID="ob-8217866"
-    export ESX_BUILD_ID="ob-8169922"
+# 67 release
+#    export VC_BUILD_ID="ob-8217866"
+#    export ESX_BUILD_ID="ob-8169922"
+# 67U1 release on Oct.06 2018
+    export VC_BUILD_ID="ob-10244745"
+    export ESX_BUILD_ID="ob-10365305"
     export VSPHERE_VERSION="6.7"
 elif [ ${REM} -eq 1 ]; then
     export VC_BUILD_ID="ob-8307201"
