@@ -31,10 +31,8 @@ VC_65_VERSION="ob-8307201"
 #VC_67_VERSION="ob-8217866"
 
 # 67U1
-ESX_67_VERSION="ob-10365305"
+ESX_67_VERSION="ob-10302608"
 VC_67_VERSION="ob-10244745"
-
-
 
 
 DEFAULT_LOG_UPLOAD_DEST="vic-ci-logs"
@@ -60,6 +58,7 @@ if [[ $1 != "6.0" && $1 != "6.5" && $1 != "6.7" ]]; then
     exit 1
 fi
 
+NIMBUS_PERSONAL_USER=${NIMBUS_PERSONAL_USER:-${NIMBUS_USER}}
 # process the CLI arguments
 NIMBUS_LOCATION=${NIMBUS_LOCATION:-sc}
 target="$1"
