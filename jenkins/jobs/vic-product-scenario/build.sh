@@ -38,7 +38,7 @@ DEFAULT_TESTCASES=("tests/manual-test-cases/Group2-OVA-Features" "tests/manual-t
 
 DEFAULT_VIC_PRODUCT_BRANCH="master"
 DEFAULT_VIC_PRODUCT_BUILD="*"
-
+NIMBUS_LOCATION=${NIMBUS_LOCATION:-sc}
 DEFAULT_PARALLEL_JOBS=4
 
 echo "Target version: ${VSPHERE_VERSION}"
@@ -97,7 +97,7 @@ pushd ${WORKSPACE_DIR}/vic-product
     echo "VIC Product OVA download complete..."
 
     PARALLEL_JOBS=${PARALLEL_JOBS:-${DEFAULT_PARALLEL_JOBS}}
-    pabot --verbose --processes "${PARALLEL_JOBS}" -d report "${excludes[@]}" --variable ESX_VERSION:"${ESX_BUILD}" --variable VC_VERSION:"${VC_BUILD}" "${testcases[@]}"
+    pabot --verbose --processes "${PARALLEL_JOBS}" -d report "${excludes[@]}" --variable ESX_VERSION:"${ESX_BUILD}" --variable VC_VERSION:"${VC_BUILD}" --variable NIMBUS_LOCATION:"${NIMBUS_LOCATION}" "${testcases[@]}"
     cat report/pabot_results/*/stdout.txt | grep -E '::|\.\.\.' | grep -E 'PASS|FAIL' > console.log
 
     # Pretty up the email results
